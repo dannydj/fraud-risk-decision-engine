@@ -90,3 +90,60 @@ Do not add:
 - secrets.
 
 All examples in this repository must be independently created and safe for publication.
+
+## Authentication risk evaluation endpoint
+
+The backend exposes an HTTP endpoint for evaluating synthetic authentication
+events through the configured risk rules.
+
+### Start the backend
+
+```bash
+./mvnw spring-boot:run
+```
+
+### Evaluate an authentication event
+
+```bash
+curl --request POST \
+  --url http://localhost:8080/api/v1/evaluations/authentication \
+  --header 'Content-Type: application/json' \
+  --data '{
+    "eventId": "synthetic-auth-event-006",
+    "occurredAt": "2026-07-15T15:00:00Z",
+    "actorReference": "synthetic-user-006",
+    "channel": "MOBILE",
+    "newDevice": true,
+    "failedAttempts": 3
+  }'
+```
+
+Example response:
+
+```json
+{
+  "eventId": "synthetic-auth-event-006",
+  "riskScore": 60,
+  "decision": "REVIEW",
+  "ruleResults": [
+    {
+      "ruleCode": "AUTH_NEW_DEVICE",
+      "ruleName": "Authentication from a new device",
+      "triggered": true,
+      "scoreImpact": 25,
+      "explanation": "The synthetic event indicates authentication from a new device",
+      "ruleVersion": "1.0"
+    },
+    {
+      "ruleCode": "AUTH_REPEATED_FAILURES",
+      "ruleName": "Repeated failed authentication attempts",
+      "triggered": true,
+      "scoreImpact": 35,
+      "explanation": "The synthetic event contains repeated failed authentication attempts",
+      "ruleVersion": "1.0"
+    }
+  ]
+}
+```
+
+All examples use fictional and synthetic data.
