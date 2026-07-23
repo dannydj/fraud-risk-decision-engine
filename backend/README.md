@@ -189,3 +189,44 @@ Example response:
 The timestamp is generated when the error response is created. When multiple
 fields are invalid, all field-level validation errors are returned in
 alphabetical order by field name.
+
+### Malformed request response
+
+Requests that cannot be converted into an authentication risk request return
+HTTP `400 Bad Request` with a structured error body.
+
+This includes malformed JSON, invalid date formats, unsupported authentication
+channels, incorrect value types, and missing request bodies.
+
+Example request with an unsupported authentication channel:
+
+```bash
+curl --request POST \
+  --url http://localhost:8080/api/v1/evaluations/authentication \
+  --header 'Content-Type: application/json' \
+  --data '{
+    "eventId": "synthetic-auth-event-012",
+    "occurredAt": "2026-07-22T20:00:00Z",
+    "actorReference": "synthetic-user-012",
+    "channel": "DESKTOP",
+    "newDevice": false,
+    "failedAttempts": 0
+  }'
+```
+
+Example response:
+
+```json
+{
+  "timestamp": "2026-07-22T20:00:00Z",
+  "status": 400,
+  "error": "MALFORMED_REQUEST",
+  "message": "Request body is missing or malformed",
+  "path": "/api/v1/evaluations/authentication",
+  "fieldErrors": []
+}
+```
+
+Malformed request responses do not expose internal parser or conversion details.
+The `fieldErrors` array is empty because field-level validation is not reached
+when the request body cannot be converted into a Java object.
