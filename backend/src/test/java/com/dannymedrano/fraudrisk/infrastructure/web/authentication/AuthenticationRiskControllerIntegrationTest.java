@@ -1,15 +1,15 @@
 package com.dannymedrano.fraudrisk.infrastructure.web.authentication;
 
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
-
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @SpringBootTest
 @AutoConfigureMockMvc
@@ -73,7 +73,27 @@ class AuthenticationRiskControllerIntegrationTest {
         post("/api/v1/evaluations/authentication")
             .contentType(MediaType.APPLICATION_JSON)
             .content(requestBody))
-        .andExpect(status().isBadRequest());
+        .andExpect(status().isBadRequest())
+        .andExpect(jsonPath("$.timestamp").exists())
+        .andExpect(jsonPath("$.status").value(400))
+        .andExpect(
+            jsonPath("$.error")
+                .value("VALIDATION_ERROR"))
+        .andExpect(
+            jsonPath("$.message")
+                .value("Request validation failed"))
+        .andExpect(
+            jsonPath("$.path")
+                .value("/api/v1/evaluations/authentication"))
+        .andExpect(
+            jsonPath("$.fieldErrors.length()")
+                .value(1))
+        .andExpect(
+            jsonPath("$.fieldErrors[0].field")
+                .value("eventId"))
+        .andExpect(
+            jsonPath("$.fieldErrors[0].message")
+                .value("Event ID must not be blank"));
   }
 
   @Test
@@ -93,6 +113,65 @@ class AuthenticationRiskControllerIntegrationTest {
         post("/api/v1/evaluations/authentication")
             .contentType(MediaType.APPLICATION_JSON)
             .content(requestBody))
-        .andExpect(status().isBadRequest());
+        .andExpect(status().isBadRequest())
+        .andExpect(jsonPath("$.timestamp").exists())
+        .andExpect(jsonPath("$.status").value(400))
+        .andExpect(
+            jsonPath("$.error")
+                .value("VALIDATION_ERROR"))
+        .andExpect(
+            jsonPath("$.message")
+                .value("Request validation failed"))
+        .andExpect(
+            jsonPath("$.path")
+                .value("/api/v1/evaluations/authentication"))
+        .andExpect(
+            jsonPath("$.fieldErrors.length()")
+                .value(1))
+        .andExpect(
+            jsonPath("$.fieldErrors[0].field")
+                .value("failedAttempts"))
+        .andExpect(
+            jsonPath("$.fieldErrors[0].message")
+                .value("Failed attempts must not be negative"));
+  }
+
+  @Test
+  void shouldReturnAllValidationErrorsInFieldOrder() throws Exception {
+    String requestBody = """
+        {
+          "eventId": "",
+          "occurredAt": "2026-07-15T15:00:00Z",
+          "actorReference": "synthetic-user-009",
+          "channel": "WEB",
+          "newDevice": false,
+          "failedAttempts": -1
+        }
+        """;
+
+    mockMvc.perform(
+        post("/api/v1/evaluations/authentication")
+            .contentType(MediaType.APPLICATION_JSON)
+            .content(requestBody))
+        .andExpect(status().isBadRequest())
+        .andExpect(jsonPath("$.status").value(400))
+        .andExpect(
+            jsonPath("$.error")
+                .value("VALIDATION_ERROR"))
+        .andExpect(
+            jsonPath("$.fieldErrors.length()")
+                .value(2))
+        .andExpect(
+            jsonPath("$.fieldErrors[0].field")
+                .value("eventId"))
+        .andExpect(
+            jsonPath("$.fieldErrors[0].message")
+                .value("Event ID must not be blank"))
+        .andExpect(
+            jsonPath("$.fieldErrors[1].field")
+                .value("failedAttempts"))
+        .andExpect(
+            jsonPath("$.fieldErrors[1].message")
+                .value("Failed attempts must not be negative"));
   }
 }

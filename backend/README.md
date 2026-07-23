@@ -147,3 +147,45 @@ Example response:
 ```
 
 All examples use fictional and synthetic data.
+
+### Validation error response
+
+Invalid requests return HTTP `400 Bad Request` with a structured error body.
+
+Example request with an invalid event ID:
+
+```bash
+curl --request POST \
+  --url http://localhost:8080/api/v1/evaluations/authentication \
+  --header 'Content-Type: application/json' \
+  --data '{
+    "eventId": "",
+    "occurredAt": "2026-07-15T15:00:00Z",
+    "actorReference": "synthetic-user-007",
+    "channel": "WEB",
+    "newDevice": false,
+    "failedAttempts": 0
+  }'
+```
+
+Example response:
+
+```json
+{
+  "timestamp": "2026-07-15T21:30:00Z",
+  "status": 400,
+  "error": "VALIDATION_ERROR",
+  "message": "Request validation failed",
+  "path": "/api/v1/evaluations/authentication",
+  "fieldErrors": [
+    {
+      "field": "eventId",
+      "message": "Event ID must not be blank"
+    }
+  ]
+}
+```
+
+The timestamp is generated when the error response is created. When multiple
+fields are invalid, all field-level validation errors are returned in
+alphabetical order by field name.
