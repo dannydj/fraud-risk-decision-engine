@@ -174,4 +174,165 @@ class AuthenticationRiskControllerIntegrationTest {
             jsonPath("$.fieldErrors[1].message")
                 .value("Failed attempts must not be negative"));
   }
+
+  @Test
+  void shouldReturnStructuredErrorForMalformedJson() throws Exception {
+    String requestBody = """
+        {
+          "eventId": "synthetic-auth-event-010"
+          "occurredAt": "2026-07-22T20:00:00Z",
+          "actorReference": "synthetic-user-010",
+          "channel": "WEB",
+          "newDevice": false,
+          "failedAttempts": 0
+        }
+        """;
+
+    mockMvc.perform(
+        post("/api/v1/evaluations/authentication")
+            .contentType(MediaType.APPLICATION_JSON)
+            .content(requestBody))
+        .andExpect(status().isBadRequest())
+        .andExpect(jsonPath("$.timestamp").exists())
+        .andExpect(jsonPath("$.status").value(400))
+        .andExpect(
+            jsonPath("$.error")
+                .value("MALFORMED_REQUEST"))
+        .andExpect(
+            jsonPath("$.message")
+                .value("Request body is missing or malformed"))
+        .andExpect(
+            jsonPath("$.path")
+                .value("/api/v1/evaluations/authentication"))
+        .andExpect(
+            jsonPath("$.fieldErrors.length()")
+                .value(0));
+  }
+
+  @Test
+  void shouldReturnStructuredErrorForInvalidOccurredAt() throws Exception {
+    String requestBody = """
+        {
+          "eventId": "synthetic-auth-event-011",
+          "occurredAt": "not-a-valid-date",
+          "actorReference": "synthetic-user-011",
+          "channel": "WEB",
+          "newDevice": false,
+          "failedAttempts": 0
+        }
+        """;
+
+    mockMvc.perform(
+        post("/api/v1/evaluations/authentication")
+            .contentType(MediaType.APPLICATION_JSON)
+            .content(requestBody))
+        .andExpect(status().isBadRequest())
+        .andExpect(jsonPath("$.timestamp").exists())
+        .andExpect(jsonPath("$.status").value(400))
+        .andExpect(
+            jsonPath("$.error")
+                .value("MALFORMED_REQUEST"))
+        .andExpect(
+            jsonPath("$.message")
+                .value("Request body is missing or malformed"))
+        .andExpect(
+            jsonPath("$.path")
+                .value("/api/v1/evaluations/authentication"))
+        .andExpect(
+            jsonPath("$.fieldErrors.length()")
+                .value(0));
+  }
+
+  @Test
+  void shouldReturnStructuredErrorForUnsupportedAuthenticationChannel()
+      throws Exception {
+    String requestBody = """
+        {
+          "eventId": "synthetic-auth-event-012",
+          "occurredAt": "2026-07-22T20:00:00Z",
+          "actorReference": "synthetic-user-012",
+          "channel": "DESKTOP",
+          "newDevice": false,
+          "failedAttempts": 0
+        }
+        """;
+
+    mockMvc.perform(
+        post("/api/v1/evaluations/authentication")
+            .contentType(MediaType.APPLICATION_JSON)
+            .content(requestBody))
+        .andExpect(status().isBadRequest())
+        .andExpect(jsonPath("$.timestamp").exists())
+        .andExpect(jsonPath("$.status").value(400))
+        .andExpect(
+            jsonPath("$.error")
+                .value("MALFORMED_REQUEST"))
+        .andExpect(
+            jsonPath("$.message")
+                .value("Request body is missing or malformed"))
+        .andExpect(
+            jsonPath("$.path")
+                .value("/api/v1/evaluations/authentication"))
+        .andExpect(
+            jsonPath("$.fieldErrors.length()")
+                .value(0));
+  }
+
+  @Test
+  void shouldReturnStructuredErrorForIncorrectValueType() throws Exception {
+    String requestBody = """
+        {
+          "eventId": "synthetic-auth-event-013",
+          "occurredAt": "2026-07-22T20:00:00Z",
+          "actorReference": "synthetic-user-013",
+          "channel": "WEB",
+          "newDevice": false,
+          "failedAttempts": {
+            "value": 3
+          }
+        }
+        """;
+
+    mockMvc.perform(
+        post("/api/v1/evaluations/authentication")
+            .contentType(MediaType.APPLICATION_JSON)
+            .content(requestBody))
+        .andExpect(status().isBadRequest())
+        .andExpect(jsonPath("$.timestamp").exists())
+        .andExpect(jsonPath("$.status").value(400))
+        .andExpect(
+            jsonPath("$.error")
+                .value("MALFORMED_REQUEST"))
+        .andExpect(
+            jsonPath("$.message")
+                .value("Request body is missing or malformed"))
+        .andExpect(
+            jsonPath("$.path")
+                .value("/api/v1/evaluations/authentication"))
+        .andExpect(
+            jsonPath("$.fieldErrors.length()")
+                .value(0));
+  }
+
+  @Test
+  void shouldReturnStructuredErrorForEmptyRequestBody() throws Exception {
+    mockMvc.perform(
+        post("/api/v1/evaluations/authentication")
+            .contentType(MediaType.APPLICATION_JSON))
+        .andExpect(status().isBadRequest())
+        .andExpect(jsonPath("$.timestamp").exists())
+        .andExpect(jsonPath("$.status").value(400))
+        .andExpect(
+            jsonPath("$.error")
+                .value("MALFORMED_REQUEST"))
+        .andExpect(
+            jsonPath("$.message")
+                .value("Request body is missing or malformed"))
+        .andExpect(
+            jsonPath("$.path")
+                .value("/api/v1/evaluations/authentication"))
+        .andExpect(
+            jsonPath("$.fieldErrors.length()")
+                .value(0));
+  }
 }
