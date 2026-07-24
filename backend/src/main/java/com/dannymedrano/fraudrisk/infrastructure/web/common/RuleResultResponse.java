@@ -1,4 +1,4 @@
-package com.dannymedrano.fraudrisk.infrastructure.web.authentication;
+package com.dannymedrano.fraudrisk.infrastructure.web.common;
 
 import com.dannymedrano.fraudrisk.domain.rule.RuleResult;
 

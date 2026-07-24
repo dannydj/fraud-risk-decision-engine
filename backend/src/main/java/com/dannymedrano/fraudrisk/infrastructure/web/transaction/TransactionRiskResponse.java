@@ -1,26 +1,26 @@
-package com.dannymedrano.fraudrisk.infrastructure.web.authentication;
+package com.dannymedrano.fraudrisk.infrastructure.web.transaction;
 
 import java.util.List;
 
 import com.dannymedrano.fraudrisk.domain.evaluation.Decision;
-import com.dannymedrano.fraudrisk.domain.evaluation.authentication.AuthenticationRiskEvaluation;
+import com.dannymedrano.fraudrisk.domain.evaluation.transaction.TransactionRiskEvaluation;
 import com.dannymedrano.fraudrisk.infrastructure.web.common.RuleResultResponse;
 
-public record AuthenticationRiskResponse(
+public record TransactionRiskResponse(
     String eventId,
     int riskScore,
     Decision decision,
     List<RuleResultResponse> ruleResults) {
 
-  public AuthenticationRiskResponse {
+  public TransactionRiskResponse {
     ruleResults = List.copyOf(ruleResults);
   }
 
-  public static AuthenticationRiskResponse from(
-      AuthenticationRiskEvaluation evaluation) {
+  public static TransactionRiskResponse from(
+      TransactionRiskEvaluation evaluation) {
     if (evaluation == null) {
       throw new IllegalArgumentException(
-          "Authentication risk evaluation must not be null");
+          "Transaction risk evaluation must not be null");
     }
 
     List<RuleResultResponse> ruleResponses = evaluation.ruleResults()
@@ -28,7 +28,7 @@ public record AuthenticationRiskResponse(
         .map(RuleResultResponse::from)
         .toList();
 
-    return new AuthenticationRiskResponse(
+    return new TransactionRiskResponse(
         evaluation.eventId(),
         evaluation.riskScore().value(),
         evaluation.decision(),
